@@ -1,0 +1,75 @@
+#Command 1: Install or update statnet
+install.packages("statnet")
+install.packages("ergmharris")
+
+#Command 2: Load statnet
+#this will need to be done every time R is opened to use statnet
+library(statnet)
+library(ergmharris)
+
+#Command 3: Accessing data available in R
+data()
+
+#Command 4: Load the local health department R data
+data("lhds")
+
+#Command 5: Check that the data loaded properly
+lhds
+
+#Command 6: See a summary of the network and attributes
+summary(lhds)
+
+#Command 7: Visualizing the network with nodes colored by state and HIV
+#program attribute (Figure 3.1)
+#dev.off( ) results in a refreshed graphic window with default settings for
+#the new graphic
+#palette assigns the default colors using in subsequent graphics
+
+dev.off()
+par(mfrow = c(2, 1), mar = c(0,0,1,0))
+palette(gray.colors(3, 0, 1))
+plot(lhds, vertex.col = "state", main = "State")
+plot(lhds, vertex.col = "hivscreen", main = "HIV Screening Programs")
+
+#Command 8: Visualize the largest component with nodes colored by HIV 
+#screening programming 
+#First syntax block identifies largest component, assigns to object, and 
+#saves object as network 
+#Second syntax block creates a subset of the HIV attribute vector and assigns 
+#to network object 
+#Third syntax block plots the new network with the HIV attribute vector, 
+#adding a legend (Figure 3.2)
+
+lhdscomp <- component.largest(lhds)
+lhdssmall <- lhds[lhdscomp, lhdscomp]
+smallnet <- as.network(lhdssmall, directed = FALSE)
+
+hivscreen <- get.vertex.attribute(lhds, "hivscreen")
+subhiv <- as.vector(subset(hivscreen, lhdscomp != "FALSE"))
+smallnet %v% "hivscreen" <- subhiv
+
+dev.off()
+par(mar = c(.2, .2, 1, .2))
+palette(gray.colors(2, 0, 1))
+plot(smallnet, vertex.col = "hivscreen", main = "HIV Screening Programs")
+legend("bottomleft", c("Y", "N"), pch = c(21, 19))
+
+#Command 9: Using node size to represent a continuous network measure 
+#R-Tip: Use the up and down arrows to scroll through syntax you've already 
+#used to reuse it
+
+numties <- degree(lhds, gmode = "graph")
+lhds %v% "numties" <-  numties
+
+dev.off()
+palette(gray.colors(2, 0, 1))
+
+par(mar = c(0,0,0,0))
+plot(lhds, vertex.col = "hivscreen", vertex.cex = "numties")
+
+# Commaqnd 10: Recoding degree and plotting the network (Figure 3.3)
+# par allows editing of plot window features; mar is used to specifiy border
+# size.
+
+par(mar = c(0,0,0,0))
+plot(lhds, vertex.col = "hivscreen", vertex.cex = numties/6)
