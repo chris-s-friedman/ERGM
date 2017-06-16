@@ -73,3 +73,80 @@ plot(lhds, vertex.col = "hivscreen", vertex.cex = "numties")
 
 par(mar = c(0,0,0,0))
 plot(lhds, vertex.col = "hivscreen", vertex.cex = numties/6)
+
+# Command 11 Degree and triangle distributions for the LHD network
+mean(degree(lhds, gmode = "graph"))
+sd(degree(lhds, gmode = "graph"))
+table(degree(lhds, gmode = "graph"))
+triad.census(lhds, mode = "graph")
+
+# Command 12: Create a random network the same size and density as LHD network
+# set.seed allows simulations and statistical processes to be replicated
+# exactly. 
+# Use goodness-of-fit procedures to get ESP and DSP values (figure 3.4)
+
+set.seed(2)
+randomg <- rgraph(1283, 1, tprob = .0033, mode = "graph")
+randomnet <- as.network(randomg, directed = FALSE)
+
+summary(randomnet)
+
+nullrandom <- ergm(randomnet ~ edges)
+gof_nullrandom <- gof(nullrandom, GOF = 
+                      ~ degree + distance + espartners + dspartners, 
+                      control = control.gof.ergm(seed = 567))
+
+lhdforesp <- ergm(lhds ~ edges)
+gof_lhdforesp <- gof(lhdforesp, GOF = 
+                     ~ degree + distance + espartners + dspartners, 
+                     control = control.gof.ergm(seed = 567))
+
+dev.off()
+
+par(mfrow = c(3,2), mai = c(.8, .8, .2, .2))
+
+hist(degree(lhds, gmode = "graph"), 
+     breaks = max(degree(lhds)) / 2, 
+     main = "", 
+     xlab = "Degree ( LHD )", 
+     xlim = range(0:15),
+     ylim = range(0:500))
+
+hist(degree(randomnet, gmode = "graph"), 
+     breaks = max(degree(randomnet)) / 2, 
+     main = "", 
+     xlab = "Degree ( Random)", 
+     xlim = range(0:15), 
+     ylim = range(0:500))
+
+barplot(gof_lhdforesp$obs.dspart[2:5], 
+        main = "", 
+        ylab = "Frequency", 
+        xlab = "DSP ( LHD )", 
+        xlim = range(0:5), 
+        ylim = range(0:15000))
+
+barplot(gof_nullrandom$obs.dspart[2:5], 
+        main = "",
+        xlab = "DSP (random network)", 
+        xlim = range(0:5), 
+        ylim = range(0:15000))
+
+barplot(gof_lhdforesp$obs.espart[2:5], 
+        main = "", 
+        ylab = "Frequency", 
+        xlab = "ESP ( LHD )", 
+        xlim = range(0:5), 
+        ylim = range(0:800))
+
+barplot(gof_nullrandom$obs.espart[2:5], 
+        main = "", 
+        xlab = "ESP ( random network )", 
+        xlim = range(0:5), 
+        ylim = range(0:800))
+
+# Command 13: Mixing matrices for HIV screening, nutrition programs, and years
+# (table 3.2)
+
+mixingmatrix(lhds, "state")
+mixingm
